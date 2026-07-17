@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GITSSEARCH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ТУТ ВСЕ ТВОИ СТИЛИ (СКОПИРУЙ ИХ ИЗ ПРЕДЫДУЩЕГО КОДА БЕЗ ИЗМЕНЕНИЙ) */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.5);
+            --accent-secondary: #3b82f6;
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --card-bg: rgba(20, 20, 30, 0.65);
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; position: relative; line-height: 1.6; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.18) 0%, transparent 45%), radial-gradient(circle at 85% 75%, rgba(59, 130, 246, 0.12) 0%, transparent 45%); z-index: -2; animation: bgPulse 18s ease-in-out infinite; }
+        @keyframes bgPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.75; transform: scale(1.05); } }
+        
+        .search-wrapper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 680px; z-index: 10; transition: all 0.7s cubic-bezier(0.32, 0.72, 0, 1); }
+        .search-wrapper.moved { top: 0; left: 50%; transform: translate(-50%, 0); margin-top: 32px; }
+        .brand { text-align: center; margin-bottom: 32px; transition: all 0.5s ease; }
+        .search-wrapper.moved .brand { margin-bottom: 16px; }
+        .brand-logo { display: inline-flex; align-items: center; gap: 12px; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; transition: all 0.5s ease; }
+        .search-wrapper.moved .brand-logo { font-size: 20px; }
+        .brand-logo .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px var(--accent-glow); transition: all 0.5s ease; }
+        .search-wrapper.moved .brand-logo .logo-icon { width: 28px; height: 28px; border-radius: 8px; }
+        .logo-icon svg { width: 24px; height: 24px; fill: white; transition: all 0.5s ease; }
+        .search-wrapper.moved .logo-icon svg { width: 16px; height: 16px; }
+        .brand-tagline { color: var(--text-muted); font-size: 15px; margin-top: 8px; transition: all 0.4s ease; }
+        .search-wrapper.moved .brand-tagline { opacity: 0; height: 0; margin-top: 0; overflow: hidden; }
+        .search-header { text-align: center; font-size: 14px; color: var(--text-muted); margin-bottom: 0; max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease 0.2s; }
+        .search-wrapper.moved .search-header { margin-bottom: 12px; max-height: 20px; opacity: 1; }
+        .filters-bar { display: flex; gap: 10px; margin-top: 12px; max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease 0.3s; }
+        .search-wrapper.moved .filters-bar { max-height: 50px; opacity: 1; }
+        .filter-select { flex: 1; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px 14px; color: var(--text-primary); font-family: inherit; font-size: 13px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; padding-right: 36px; }
+        .filter-select:focus { outline: none; border-color: var(--accent); }
+        .filter-select option { background: var(--bg-secondary); }
+        .search-container { background: var(--glass-bg); backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--glass-border); border-radius: 24px; padding: 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); }
+        .search-row { display: flex; gap: 10px; position: relative; }
+        .search-input-wrap { flex: 1; position: relative; }
+        .search-input-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; pointer-events: none; }
+        .search-input { width: 100%; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--glass-border); border-radius: 14px; padding: 16px 20px 16px 48px; color: var(--text-primary); font-size: 16px; font-family: inherit; font-weight: 500; transition: all 0.25s ease; }
+        .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15), 0 0 32px rgba(139, 92, 246, 0.1); }
+        .search-input:focus + svg { stroke: var(--accent); }
+        .search-btn { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); border: none; border-radius: 14px; padding: 0 28px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .search-btn svg { width: 16px; height: 16px; fill: white; }
+        .loader-container { display: none; justify-content: center; align-items: center; padding: 120px 20px; }
+        .loader-container.active { display: flex; }
+        .loader { --color-1: rgba(139, 92, 246, 1); --color-2: rgb(100, 60, 200); --color-3: rgb(50, 30, 100); --color-4: rgb(10, 10, 20); --size: 1px; width: calc(100 * var(--size)); height: calc(100 * var(--size)); background: linear-gradient(165deg, var(--color-1) 0%, var(--color-2) 40%, var(--color-3) 98%, var(--color-4) 100%); border-radius: 50%; position: relative; }
+        .loader:before { position: absolute; content: ''; width: 100%; height: 100%; border-radius: 100%; border-bottom: 0 solid #8b5cf605; box-shadow: 0 calc(-10 * var(--size)) calc(20 * var(--size)) calc(20 * var(--size)) #8b5cf640 inset, 0 calc(-5 * var(--size)) calc(15 * var(--size)) calc(10 * var(--size)) #8b5cf650 inset, 0 calc(-2 * var(--size)) calc(5 * var(--size)) #8b5cf680 inset, 0 calc(-3 * var(--size)) calc(2 * var(--size)) #8b5cf6bb inset, 0 calc(2 * var(--size)) 0 #8b5cf6, 0 calc(2 * var(--size)) calc(3 * var(--size)) #8b5cf6, 0 calc(5 * var(--size)) calc(5 * var(--size)) #8b5cf690, 0 calc(10 * var(--size)) calc(15 * var(--size)) #8b5cf660, 0 calc(10 * var(--size)) calc(20 * var(--size)) calc(20 * var(--size)) #8b5cf640; filter: blur(calc(3 * var(--size))); animation: 2s rotate linear infinite; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        .results-container { max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; opacity: 0; pointer-events: none; }
+        .results-container.active { opacity: 1; pointer-events: auto; }
+        .results-spacer { height: 0px; transition: height 0.5s ease; }
+        .results-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 0 4px; }
+        .results-count { color: var(--text-secondary); font-size: 14px; font-weight: 500; }
+        .results-count strong { color: var(--text-primary); }
+        .ai-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--success); padding: 6px 12px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; }
+        .ai-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+        .repo-card { background: var(--card-bg); backdrop-filter: blur(20px) saturate(180%); border: 1px solid var(--glass-border); border-radius: 20px; padding: 22px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; opacity: 0; transform: translateY(24px); animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; display: flex; flex-direction: column; }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        .repo-card:hover { transform: translateY(-4px); border-color: rgba(139, 92, 246, 0.25); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); }
+        .card-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+        .avatar { width: 52px; height: 52px; border-radius: 14px; object-fit: cover; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: white; }
+        .repo-card:hover .avatar { border-color: var(--accent); }
+        .card-title { flex: 1; min-width: 0; }
+        .repo-name { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; word-break: break-word; text-decoration: none; display: block; }
+        .repo-name:hover { color: var(--accent); }
+        .repo-author { font-size: 13px; color: var(--text-muted); }
+        .repo-description { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; min-height: 84px; flex-grow: 1; }
+        .repo-description.ai-generated { color: var(--text-primary); }
+        .ai-badge { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; vertical-align: middle; text-transform: uppercase; }
+        .read-more-btn { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; margin-bottom: 16px; display: none; align-self: flex-start; }
+        .card-footer { display: flex; align-items: center; gap: 16px; padding-top: 14px; border-top: 1px solid var(--glass-border); margin-top: auto; }
+        .stat { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--text-muted); font-weight: 500; }
+        .stat svg { width: 14px; height: 14px; fill: currentColor; }
+        .repo-link { margin-left: auto; color: var(--accent); text-decoration: none; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .repo-link svg { width: 14px; height: 14px; fill: currentColor; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 100; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content { background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 24px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 24px 80px rgba(0,0,0,0.6); transform: scale(0.9); transition: transform 0.3s ease; position: relative; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 50%; width: 36px; height: 36px; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .modal-header { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; padding-right: 40px; }
+        .modal-avatar { width: 72px; height: 72px; border-radius: 18px; object-fit: cover; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: white; }
+        .modal-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; word-break: break-word; }
+        .modal-body { font-size: 15px; color: var(--text-secondary); line-height: 1.7; }
+        .hint { text-align: center; margin-top: 20px; color: var(--text-muted); font-size: 13px; opacity: 0.7; }
+        .search-wrapper.moved .hint { opacity: 0; height: 0; overflow: hidden; }
+    </style>
+</head>
+<body>
+    <div class="search-wrapper" id="searchWrapper">
+        <div class="brand">
+            <div class="brand-logo">
+                <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></div>
+                GITSSEARCH
+            </div>
+            <div class="brand-tagline">Умный поиск по GitHub с искусственным интеллектом</div>
+        </div>
+        <div class="search-container">
+            <div class="search-header">Результаты поиска</div>
+            <div class="search-row">
+                <div class="search-input-wrap">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Найти репозиторий..." spellcheck="false" autocomplete="off">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </div>
+                <button class="search-btn" id="searchBtn"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><span>Поиск</span></button>
+            </div>
+            <div class="filters-bar">
+                <select class="filter-select" id="languageFilter">
+                    <option value="">Любой язык</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="python">Python</option>
+                    <option value="go">Go</option>
+                    <option value="rust">Rust</option>
+                </select>
+                <select class="filter-select" id="sortFilter">
+                    <option value="stars">По звездам</option>
+                    <option value="updated">Недавно обновленные</option>
+                    <option value="forks">По форкам</option>
+                </select>
+            </div>
+        </div>
+        <div class="hint">Нажмите Enter для поиска</div>
+    </div>
+    <div class="results-spacer" id="resultsSpacer"></div>
+    <div class="results-container" id="resultsContainer">
+        <div class="results-meta" id="resultsMeta" style="display: none;">
+            <div class="results-count" id="resultsCount"></div>
+            <div class="ai-status">ИИ-анализ активирован</div>
+        </div>
+        <div class="results-grid" id="resultsGrid"></div>
+    </div>
+    <div class="loader-container" id="loader"><div class="loader"></div></div>
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div class="modal-header">
+                <div class="modal-avatar" id="modalAvatar"></div>
+                <div><h2 class="modal-title" id="modalTitle"></h2><span class="modal-author" id="modalAuthor"></span></div>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // ВАЖНО: Теперь фронтенд обращается НЕ к Groq напрямую, а к нашему бэкенду (/api/search-ai)
+        const GITHUB_API_URL = 'https://api.github.com/search/repositories';
+        const AI_BACKEND_URL = '/api/search-ai'; 
+        
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchWrapper = document.getElementById('searchWrapper');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const resultsMeta = document.getElementById('resultsMeta');
+        const resultsCount = document.getElementById('resultsCount');
+        const loader = document.getElementById('loader');
+        const resultsSpacer = document.getElementById('resultsSpacer');
+        const languageFilter = document.getElementById('languageFilter');
+        const sortFilter = document.getElementById('sortFilter');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalClose = document.getElementById('modalClose');
+        const modalAvatar = document.getElementById('modalAvatar');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalAuthor = document.getElementById('modalAuthor');
+        const modalBody = document.getElementById('modalBody');
+
+        let cardDataStore = {};
+
+        searchInput.addEventListener('input', (e) => {
+            if (e.target.value.trim().length > 0) {
+                searchWrapper.classList.add('moved');
+                resultsSpacer.style.height = '200px';
+            } else {
+                searchWrapper.classList.remove('moved');
+                resultsSpacer.style.height = '0px';
+                resultsContainer.classList.remove('active');
+                resultsGrid.innerHTML = ''; 
+                resultsMeta.style.display = 'none';
+                loader.classList.remove('active');
+            }
+        });
+        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
+        searchBtn.addEventListener('click', performSearch);
+        languageFilter.addEventListener('change', performSearch);
+        sortFilter.addEventListener('change', performSearch);
+        modalClose.addEventListener('click', () => modalOverlay.classList.remove('active'));
+        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); });
+
+        function openModal(repoId) {
+            const data = cardDataStore[repoId];
+            if (!data) return;
+            modalAvatar.innerHTML = data.avatarHtml;
+            modalTitle.textContent = data.name;
+            modalAuthor.textContent = data.author;
+            modalBody.innerHTML = data.descriptionHtml;
+            modalOverlay.classList.add('active');
+        }
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            loader.classList.add('active');
+            resultsContainer.classList.remove('active');
+            resultsGrid.innerHTML = ''; 
+            resultsMeta.style.display = 'none';
+            cardDataStore = {};
+            searchWrapper.classList.add('moved');
+            resultsSpacer.style.height = '200px';
+
+            try {
+                let q = encodeURIComponent(query);
+                if (languageFilter.value) q += `+language:${languageFilter.value}`;
+                const sort = sortFilter.value === 'best-match' ? '' : `&sort=${sortFilter.value}&order=desc`;
+                const githubUrl = `${GITHUB_API_URL}?q=${q}${sort}&per_page=24`;
+                
+                const githubResponse = await fetch(githubUrl, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+                if (!githubResponse.ok) throw new Error('GitHub API error');
+                const githubData = await githubResponse.json();
+
+                loader.classList.remove('active');
+                resultsMeta.style.display = 'flex';
+                resultsContainer.classList.add('active');
+
+                if (!githubData.items || githubData.items.length === 0) {
+                    resultsCount.innerHTML = `Ищем решения через ИИ...`;
+                    await fetchAIFallbackLinks(query);
+                } else {
+                    resultsCount.innerHTML = `Найдено <strong>${githubData.total_count.toLocaleString()}</strong> репозиториев`;
+                    githubData.items.forEach((repo, index) => createRepoCard(repo, index));
+                    checkTruncation();
+
+                    // ОТПРАВЛЯЕМ ЗАПРОС НА НАШ БЭКЕНД
+                    githubData.items.slice(0, 10).forEach((repo, index) => {
+                        setTimeout(() => fetchAIDescriptionFromBackend(repo, query), index * 200);
+                    });
+                    fetchAIRecommendationsFromBackend(query);
+                }
+            } catch (error) {
+                loader.classList.remove('active');
+                showErrorState(error.message);
+            }
+        }
+
+        async function fetchAIDescriptionFromBackend(repo, query) {
+            try {
+                const response = await fetch(AI_BACKEND_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'description', repo: repo.full_name, desc: repo.description, lang: repo.language, query: query })
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                const aiDescription = data.description;
+
+                if (aiDescription) {
+                    const descElement = document.querySelector(`[data-repo-desc="${repo.id}"]`);
+                    if (descElement) {
+                        const newHtml = `<span class="ai-badge">AI</span>${escapeHtml(aiDescription)}`;
+                        if (cardDataStore[repo.id]) cardDataStore[repo.id].descriptionHtml = newHtml;
+                        descElement.style.opacity = '0';
+                        setTimeout(() => {
+                            descElement.innerHTML = newHtml;
+                            descElement.classList.add('ai-generated');
+                            descElement.style.opacity = '1';
+                            checkTruncation();
+                        }, 300);
+                    }
+                }
+            } catch (e) { console.error("Backend AI error", e); }
+        }
+
+        async function fetchAIRecommendationsFromBackend(query) {
+            try {
+                const response = await fetch(AI_BACKEND_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'recommendations', query: query })
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                if (data.results && Array.isArray(data.results)) {
+                    data.results.forEach((item, index) => createAICard(item, index + 100));
+                }
+            } catch (e) { console.error("Backend Rec error", e); }
+        }
+
+        async function fetchAIFallbackLinks(query) {
+            try {
+                const response = await fetch(AI_BACKEND_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'fallback', query: query })
+                });
+                const data = await response.json();
+                if (data.results && data.results.length > 0) {
+                    resultsCount.innerHTML = `ИИ нашел <strong>${data.results.length}</strong> релевантных решений`;
+                    resultsGrid.innerHTML = '';
+                    data.results.forEach((item, index) => createAICard(item, index));
+                    checkTruncation();
+                } else { showEmptyState(); }
+            } catch (error) { showErrorState("ИИ недоступен."); }
+        }
+
+        function createRepoCard(repo, index) {
+            const card = document.createElement('div');
+            card.className = 'repo-card';
+            card.style.animationDelay = `${Math.min(index * 0.04, 0.8)}s`;
+            const descHtml = escapeHtml(repo.description || 'ИИ генерирует описание...');
+            const avatarHtml = `<img class="avatar" src="${repo.owner.avatar_url}" alt="${escapeHtml(repo.owner.login)}" loading="lazy">`;
+            cardDataStore[repo.id] = { avatarHtml, name: repo.name, author: repo.owner.login, descriptionHtml: descHtml };
+            card.innerHTML = `
+                <div class="card-header"><div class="avatar-wrap">${avatarHtml}</div><div class="card-title"><a href="${repo.html_url}" target="_blank" class="repo-name">${escapeHtml(repo.name)}</a><div class="repo-author">${escapeHtml(repo.owner.login)}</div></div></div>
+                <div class="repo-description" data-repo-desc="${repo.id}">${descHtml}</div>
+                <button class="read-more-btn" data-repo-id="${repo.id}">Еще...</button>
+                <div class="card-footer">
+                    <span class="stat"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${formatNumber(repo.stargazers_count)}</span>
+                    <span class="stat"><svg viewBox="0 0 24 24"><path d="M6 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm12 0a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM12 14.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM6 8.5v.5c0 1.5 1 3 3 3h6c2 0 3-1.5 3-3v-.5"/></svg>${formatNumber(repo.forks_count)}</span>
+                    ${repo.language ? `<span class="stat"><span class="language-dot" style="background: #8b5cf6;"></span>${escapeHtml(repo.language)}</span>` : ''}
+                    <a href="${repo.html_url}" target="_blank" class="repo-link">Открыть</a>
+                </div>`;
+            resultsGrid.appendChild(card);
+        }
+
+        function createAICard(item, index) {
+            const card = document.createElement('div');
+            card.className = 'repo-card';
+            card.style.animationDelay = `${index * 0.1}s`;
+            const safeName = escapeHtml(item.name || 'Без названия');
+            const safeUrl = escapeHtml(item.url || '#');
+            const safeDesc = escapeHtml(item.description || 'Описание не предоставлено ИИ.');
+            const descHtml = `<span class="ai-badge">AI</span>${safeDesc}`;
+            const avatarHtml = `<div class="avatar" style="background: linear-gradient(135deg, var(--accent), var(--accent-secondary));">AI</div>`;
+            const repoId = `ai-${index}`;
+            cardDataStore[repoId] = { avatarHtml, name: item.name, author: 'Рекомендация ИИ', descriptionHtml: descHtml };
+            card.innerHTML = `
+                <div class="card-header"><div class="avatar-wrap">${avatarHtml}</div><div class="card-title"><a href="${safeUrl}" target="_blank" class="repo-name">${safeName}</a><div class="repo-author">Рекомендация ИИ</div></div></div>
+                <div class="repo-description ai-generated" data-repo-desc="${repoId}">${descHtml}</div>
+                <button class="read-more-btn" data-repo-id="${repoId}">Еще...</button>
+                <div class="card-footer">
+                    <span class="stat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>Топ выбор</span>
+                    <a href="${safeUrl}" target="_blank" class="repo-link">Открыть</a>
+                </div>`;
+            resultsGrid.appendChild(card);
+        }
+
+        function checkTruncation() {
+            document.querySelectorAll('.repo-description').forEach(descEl => {
+                const btn = descEl.parentElement.querySelector('.read-more-btn');
+                if (!btn) return;
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                if (descEl.scrollHeight > descEl.clientHeight + 2) {
+                    newBtn.style.display = 'inline-block';
+                    newBtn.addEventListener('click', () => openModal(newBtn.dataset.repoId));
+                } else { newBtn.style.display = 'none'; }
+            });
+        }
+
+        function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        function formatNumber(num) { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'k'; return num; }
+        function showEmptyState() { resultsContainer.classList.add('active'); resultsMeta.style.display = 'none'; resultsGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;"><h3>Ничего не найдено</h3><p>Даже ИИ не смог найти подходящие решения.</p></div>`; }
+        function showErrorState(message) { resultsContainer.classList.add('active'); resultsMeta.style.display = 'none'; resultsGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;"><h3>Произошла ошибка</h3><p>${escapeHtml(message)}</p></div>`; }
+        window.addEventListener('load', () => { setTimeout(() => searchInput.focus(), 300); });
+    </script>
+</body>
+</html>
